@@ -22,12 +22,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*Response, error)
-	GetProfile(ctx context.Context, in *Request, opts ...grpc.CallOption) (*User, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*Response, error)
-	DeleteAccount(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	Register(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*SuccesResponse, error)
+	GetProfile(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserGetProfile, error)
+	UpdateUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*SuccesResponse, error)
+	DeleteAccount(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SuccesResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*Response, error)
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*SuccesResponse, error)
 }
 
 type authServiceClient struct {
@@ -38,8 +38,8 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
+func (c *authServiceClient) Register(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*SuccesResponse, error) {
+	out := new(SuccesResponse)
 	err := c.cc.Invoke(ctx, "/kulineerklasik.AuthService/Register", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -47,8 +47,8 @@ func (c *authServiceClient) Register(ctx context.Context, in *User, opts ...grpc
 	return out, nil
 }
 
-func (c *authServiceClient) GetProfile(ctx context.Context, in *Request, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
+func (c *authServiceClient) GetProfile(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserGetProfile, error) {
+	out := new(UserGetProfile)
 	err := c.cc.Invoke(ctx, "/kulineerklasik.AuthService/GetProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -56,8 +56,8 @@ func (c *authServiceClient) GetProfile(ctx context.Context, in *Request, opts ..
 	return out, nil
 }
 
-func (c *authServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
+func (c *authServiceClient) UpdateUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*SuccesResponse, error) {
+	out := new(SuccesResponse)
 	err := c.cc.Invoke(ctx, "/kulineerklasik.AuthService/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -65,8 +65,8 @@ func (c *authServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReques
 	return out, nil
 }
 
-func (c *authServiceClient) DeleteAccount(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
+func (c *authServiceClient) DeleteAccount(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SuccesResponse, error) {
+	out := new(SuccesResponse)
 	err := c.cc.Invoke(ctx, "/kulineerklasik.AuthService/DeleteAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -83,8 +83,8 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	return out, nil
 }
 
-func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
+func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*SuccesResponse, error) {
+	out := new(SuccesResponse)
 	err := c.cc.Invoke(ctx, "/kulineerklasik.AuthService/ChangePassword", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -96,12 +96,12 @@ func (c *authServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
-	Register(context.Context, *User) (*Response, error)
-	GetProfile(context.Context, *Request) (*User, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*Response, error)
-	DeleteAccount(context.Context, *Request) (*Response, error)
+	Register(context.Context, *UserRequest) (*SuccesResponse, error)
+	GetProfile(context.Context, *Empty) (*UserGetProfile, error)
+	UpdateUser(context.Context, *UserRequest) (*SuccesResponse, error)
+	DeleteAccount(context.Context, *Empty) (*SuccesResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	ChangePassword(context.Context, *ChangePasswordRequest) (*Response, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*SuccesResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -109,22 +109,22 @@ type AuthServiceServer interface {
 type UnimplementedAuthServiceServer struct {
 }
 
-func (UnimplementedAuthServiceServer) Register(context.Context, *User) (*Response, error) {
+func (UnimplementedAuthServiceServer) Register(context.Context, *UserRequest) (*SuccesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedAuthServiceServer) GetProfile(context.Context, *Request) (*User, error) {
+func (UnimplementedAuthServiceServer) GetProfile(context.Context, *Empty) (*UserGetProfile, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfile not implemented")
 }
-func (UnimplementedAuthServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*Response, error) {
+func (UnimplementedAuthServiceServer) UpdateUser(context.Context, *UserRequest) (*SuccesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
-func (UnimplementedAuthServiceServer) DeleteAccount(context.Context, *Request) (*Response, error) {
+func (UnimplementedAuthServiceServer) DeleteAccount(context.Context, *Empty) (*SuccesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAccount not implemented")
 }
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*Response, error) {
+func (UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*SuccesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
@@ -141,7 +141,7 @@ func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
 }
 
 func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(User)
+	in := new(UserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -153,13 +153,13 @@ func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/kulineerklasik.AuthService/Register",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Register(ctx, req.(*User))
+		return srv.(AuthServiceServer).Register(ctx, req.(*UserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_GetProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -171,13 +171,13 @@ func _AuthService_GetProfile_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/kulineerklasik.AuthService/GetProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetProfile(ctx, req.(*Request))
+		return srv.(AuthServiceServer).GetProfile(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserRequest)
+	in := new(UserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -189,13 +189,13 @@ func _AuthService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/kulineerklasik.AuthService/UpdateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
+		return srv.(AuthServiceServer).UpdateUser(ctx, req.(*UserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_DeleteAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func _AuthService_DeleteAccount_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/kulineerklasik.AuthService/DeleteAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).DeleteAccount(ctx, req.(*Request))
+		return srv.(AuthServiceServer).DeleteAccount(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

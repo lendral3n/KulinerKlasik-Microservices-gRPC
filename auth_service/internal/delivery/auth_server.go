@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"authservice/helper/middleware"
 	"authservice/internal"
 	pb "authservice/internal/delivery/grpc"
 	"context"
@@ -17,91 +18,26 @@ func New(usecase internal.AuthUseCaseInterface) *AuthServiceServer {
 	}
 }
 
-func (s *AuthServiceServer) Register(ctx context.Context, req *pb.User) (*pb.Response, error) {
+func (s *AuthServiceServer) Register(ctx context.Context, req *pb.UserRequest) (*pb.SuccesResponse, error) {
 	user := internal.User{
-		FullName:         req.FullName,
-		Username:         req.Username,
-		Password:         req.Password,
-		Email:            req.Email,
-		PhotoProfile:     req.PhotoProfile,
-		VerifiedEmail:    req.VerifiedEmail,
-		RegistrationType: req.RegistrationType,
+		FullName:     req.FullName,
+		Username:     req.Username,
+		Email:        req.Email,
+		Password:     req.Password,
+		PhotoProfile: req.PhotoProfile,
 	}
 
 	err := s.uc.Register(user)
 	if err != nil {
-		return &pb.Response{
+		return &pb.SuccesResponse{
 			Success: false,
 			Message: err.Error(),
 		}, err
 	}
 
-	return &pb.Response{
+	return &pb.SuccesResponse{
 		Success: true,
 		Message: "User registered successfully",
-	}, nil
-}
-
-func (s *AuthServiceServer) GetProfile(ctx context.Context, req *pb.Request) (*pb.User, error) {
-	user, err := s.uc.GetProfile(int(req.UserId))
-	if err != nil {
-		return nil, err
-	}
-
-	// Konversi internal User ke protobuf User
-	protoUser := &pb.User{
-		Id:               uint32(user.ID),
-		FullName:         user.FullName,
-		Username:         user.Username,
-		Email:            user.Email,
-		PhotoProfile:     user.PhotoProfile,
-		VerifiedEmail:    user.VerifiedEmail,
-		RegistrationType: user.RegistrationType,
-		// Isi field lainnya sesuai kebutuhan
-	}
-
-	return protoUser, nil
-}
-
-func (s *AuthServiceServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.Response, error) {
-	// Konversi protobuf User ke internal User
-	user := internal.User{
-		ID:               uint(req.User.Id),
-		FullName:         req.User.FullName,
-		Username:         req.User.Username,
-		Password:         req.User.Password,
-		Email:            req.User.Email,
-		PhotoProfile:     req.User.PhotoProfile,
-		VerifiedEmail:    req.User.VerifiedEmail,
-		RegistrationType: req.User.RegistrationType,
-	}
-
-	err := s.uc.UpdateUser(int(req.UserId), user)
-	if err != nil {
-		return &pb.Response{
-			Success: false,
-			Message: err.Error(),
-		}, err
-	}
-
-	return &pb.Response{
-		Success: true,
-		Message: "User updated successfully",
-	}, nil
-}
-
-func (s *AuthServiceServer) DeleteAccount(ctx context.Context, req *pb.Request) (*pb.Response, error) {
-	err := s.uc.DeleteAccount(int(req.UserId))
-	if err != nil {
-		return &pb.Response{
-			Success: false,
-			Message: err.Error(),
-		}, err
-	}
-
-	return &pb.Response{
-		Success: true,
-		Message: "Account deleted successfully",
 	}, nil
 }
 
@@ -112,24 +48,103 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	}
 
 	response := &pb.LoginResponse{
-		FullName: user.FullName, 
-		Token:    token,        
+		FullName: user.FullName,
+		JwtToken: token,
 	}
 
 	return response, nil
 }
 
-
-func (s *AuthServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.Response, error) {
-	err := s.uc.ChangePassword(int(req.UserId), req.OldPassword, req.NewPassword)
+func (s *AuthServiceServer) GetProfile(ctx context.Context, req *pb.Empty) (*pb.UserGetProfile, error) {
+	userId, err := middleware.ExtractTokenUserId(ctx)
 	if err != nil {
-		return &pb.Response{
+		return nil, err
+	}
+
+	user, err := s.uc.GetProfile(int(userId))
+	if err != nil {
+		return nil, err
+	}
+
+	// Konversi internal User ke protobuf User
+	protoUser := &pb.UserGetProfile{
+		FullName:         user.FullName,
+		Username:         user.Username,
+		Email:            user.Email,
+		PhotoProfile:     user.PhotoProfile,
+		VerifiedEmail:    user.VerifiedEmail,
+		RegistrationType: user.RegistrationType,
+		Role:             user.Role.NameRole,
+	}
+
+	return protoUser, nil
+}
+
+func (s *AuthServiceServer) UpdateUser(ctx context.Context, req *pb.UserRequest) (*pb.SuccesResponse, error) {
+	userId, err := middleware.ExtractTokenUserId(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Konversi protobuf User ke internal User
+	user := internal.User{
+		FullName:     req.FullName,
+		Username:     req.Username,
+		Password:     req.Password,
+		Email:        req.Email,
+		PhotoProfile: req.PhotoProfile,
+	}
+
+	err = s.uc.UpdateUser(userId, user)
+	if err != nil {
+		return &pb.SuccesResponse{
 			Success: false,
 			Message: err.Error(),
 		}, err
 	}
 
-	return &pb.Response{
+	return &pb.SuccesResponse{
+		Success: true,
+		Message: "User updated successfully",
+	}, nil
+}
+
+func (s *AuthServiceServer) DeleteAccount(ctx context.Context, req *pb.Empty) (*pb.SuccesResponse, error) {
+	
+	userId, err := middleware.ExtractTokenUserId(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.uc.DeleteAccount(userId)
+	if err != nil {
+		return &pb.SuccesResponse{
+			Success: false,
+			Message: err.Error(),
+		}, err
+	}
+
+	return &pb.SuccesResponse{
+		Success: true,
+		Message: "Account deleted successfully",
+	}, nil
+}
+
+func (s *AuthServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.SuccesResponse, error) {
+	userId, err := middleware.ExtractTokenUserId(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.uc.ChangePassword(int(userId), req.OldPassword, req.NewPassword)
+	if err != nil {
+		return &pb.SuccesResponse{
+			Success: false,
+			Message: err.Error(),
+		}, err
+	}
+
+	return &pb.SuccesResponse{
 		Success: true,
 		Message: "Password changed successfully",
 	}, nil
