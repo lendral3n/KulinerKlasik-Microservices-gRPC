@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package kulineerklasik;
+
+option go_package = "internal/delivery/grpc";
+
+import "google/protobuf/timestamp.proto";
+
+// The user message
+message User {
+  uint32 id = 1;
+  string full_name = 2;
+  string username = 3;
+  string password = 4;
+  string email = 5;
+  string photo_profile = 6;
+  bool verified_email = 7;
+  string registration_type = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// The role message
+message Role {
+  string name_role = 1;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+// The service definition
+service AuthService {
+  rpc Register(User) returns (Response);
+  rpc GetProfile(Request) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (Response);
+  rpc DeleteAccount(Request) returns (Response);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (Response);
+}
+
+// Request message for GetProfile and DeleteAccount
+message Request {
+  uint32 user_id = 1;
+}
+
+message LoginResponse {
+  string full_name = 1;
+  string token = 2;
+}
+
+// Request message for UpdateUser
+message UpdateUserRequest {
+  uint32 user_id = 1;
+  User user = 2;
+}
+
+// Request message for Login
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// Request message for ChangePassword
+message ChangePasswordRequest {
+  uint32 user_id = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+
+// Response message
+message Response {
+  bool success = 1;
+  string message = 2;
+}
