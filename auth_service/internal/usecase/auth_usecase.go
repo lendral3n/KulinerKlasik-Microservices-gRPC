@@ -43,12 +43,12 @@ func (a *authUseCase) Register(input internal.User) error {
 }
 
 // Login implements internal.AuthUseCaseInterface.
-func (a *authUseCase) Login(email string, password string) (data *internal.User, token string, err error) {
+func (a *authUseCase) Login(email string, password string) (*internal.User, string, error) {
 	if email == "" {
-		return nil, "", errors.New("emai")
+		return nil, "", errors.New("email is required")
 	}
 	if password == "" {
-		return nil, "", errors.New("password")
+		return nil, "", errors.New("password is required")
 	}
 
 	user, err := a.authData.Login(email, password)
@@ -58,7 +58,7 @@ func (a *authUseCase) Login(email string, password string) (data *internal.User,
 
 	isValid := a.hashService.CheckPasswordHash(user.Password, password)
 	if !isValid {
-		return nil, "", errors.New("passwrd")
+		return nil, "", errors.New("invalid password")
 	}
 	
 	token, errJwt := middleware.CreateTokenLogin(int(user.ID))
@@ -66,7 +66,7 @@ func (a *authUseCase) Login(email string, password string) (data *internal.User,
 		return nil, "", errJwt
 	}
 
-	return data, token, nil
+	return user, token, nil
 }
 
 // GetProfile implements internal.AuthUseCaseInterface.
@@ -95,7 +95,7 @@ func (a *authUseCase) ChangePassword(userId int, oldPassword string, newPassword
 		return err
 	}
 
-	return nil
+	return err
 }
 
 // DeleteAccount implements internal.AuthUseCaseInterface.
@@ -107,7 +107,7 @@ func (a *authUseCase) DeleteAccount(userId int) error {
 	if err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 // UpdateUser implements internal.AuthUseCaseInterface.
@@ -116,5 +116,5 @@ func (a *authUseCase) UpdateUser(userId int, input internal.User) error {
 	if err != nil {
 		return err
 	}
-	return nil
+	return err
 }

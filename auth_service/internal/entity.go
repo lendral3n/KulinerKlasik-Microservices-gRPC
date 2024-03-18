@@ -13,6 +13,7 @@ type User struct {
 	RegistrationType string
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	Role Role
 }
 
 type Role struct {

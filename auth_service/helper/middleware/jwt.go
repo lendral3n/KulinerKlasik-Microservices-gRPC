@@ -1,22 +1,16 @@
 package middleware
 
 import (
-	"authservice/app/config"
+	"context"
 	"fmt"
-	"strings"
+	"authservice/app/config"
 	"time"
-
+	"strings"
 	"github.com/golang-jwt/jwt/v5"
-	echojwt "github.com/labstack/echo-jwt/v4"
-	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
 )
-
-func JWTMiddleware() echo.MiddlewareFunc {
-	return echojwt.WithConfig(echojwt.Config{
-		SigningKey:    []byte(config.JWT_SECRET),
-		SigningMethod: "HS256",
-	})
-}
 
 // Generate token jwt
 func CreateTokenLogin(userId int) (string, error) {
@@ -25,27 +19,43 @@ func CreateTokenLogin(userId int) (string, error) {
 	claims["userId"] = userId
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(config.JWT_SECRET))
+	signedToken, err := token.SignedString([]byte(config.JWT_SECRET))
+	return signedToken, err
 }
 
-// extract token jwt
-func ExtractTokenUserId(e echo.Context) int {
-	header := e.Request().Header.Get("Authorization")
-	headerToken := strings.Split(header, " ")
-	token := headerToken[len(headerToken)-1]
-	tokenJWT, _ := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+
+// Extract token jwt for gRPC
+func ExtractTokenUserId(ctx context.Context) (int, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return 0, status.Errorf(codes.Unauthenticated, "no auth metadata found in request")
+	}
+
+	values := md["authorization"]
+	if len(values) == 0 {
+		return 0, status.Errorf(codes.Unauthenticated, "authorization token not provided")
+	}
+
+	jwtToken := values[0]
+jwtToken = strings.TrimPrefix(jwtToken, "Bearer ")
+
+	tokenJWT, err := jwt.Parse(jwtToken, func(t *jwt.Token) (interface{}, error) {
 		return []byte(config.JWT_SECRET), nil
 	})
 
-	if tokenJWT.Valid {
-		claims := tokenJWT.Claims.(jwt.MapClaims)
+	if err != nil {
+		return 0, status.Errorf(codes.Unauthenticated, "error parsing token: %v", err)
+	}
+
+	if claims, ok := tokenJWT.Claims.(jwt.MapClaims); ok && tokenJWT.Valid {
 		userId, isValidUserId := claims["userId"].(float64)
 		if !isValidUserId {
-			return 0
+			return 0, status.Errorf(codes.Unauthenticated, "invalid user id in token")
 		}
-		return int(userId)
+		return int(userId), nil
 	}
-	return 0
+
+	return 0, status.Errorf(codes.Unauthenticated, "invalid token")
 }
 
 func CreateResetPasswordToken(userId int) (string, error) {
