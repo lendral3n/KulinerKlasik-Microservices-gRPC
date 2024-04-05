@@ -13,7 +13,7 @@ We are building a microservice architecture using Golang and gRPC. The architect
 
 1. **API Gateway:** Handles incoming HTTP requests
 2. **Auth Service:** Provides features such as Register, Login and generates Token by JWT
-3. **Menu Service:** Provides features such as Add Product, Decrease Stock and Find Product
+3. **Menu Service:** Provides features such as Add Menu, Decrease Stock and Find Menu
 4. **Order Service:** The only feature we ship in this Microservice is Create Order
 
 ## How to start ?
